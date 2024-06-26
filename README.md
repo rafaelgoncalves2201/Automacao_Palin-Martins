@@ -85,7 +85,7 @@ time e datetime: Para manipulação de tempo e datas.
         pesquisar = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@title='Clique para pesquisar por numero do aiim (sem o digito verificador)']")))
         pesquisar.click()
 
-### Tratamento do balão de erro
+### Tratamento Alert Google
         try:
             alert_wait = WebDriverWait(driver, timeout=0.5)
             alert = alert_wait.until(EC.alert_is_present())
@@ -93,7 +93,7 @@ time e datetime: Para manipulação de tempo e datas.
         except Exception as e:
             ERRO = "" # String Vazia
             DRT = ""
-### Selecionamento das variaveis definidas
+### Selecionando as variaveis definidas
             try:
                 # Espera até que o elemento com o ID 'ConteudoPagina_lblDRT' seja visível e obtenha o texto
                 elemento_drt = wait.until(EC.visibility_of_element_located((By.ID, 'ConteudoPagina_lblDRT')))
@@ -106,7 +106,7 @@ time e datetime: Para manipulação de tempo e datas.
                 # Pesquisar data
                 elemento_data = driver.find_element(By.CSS_SELECTOR, 'td.td1#dataEvento')
                 DATA = elemento_data.text
-### Tratamento de erro caso não tenha informação
+### Tratamento de erro caso não tenha informação no site
             except Exception as e:
                 # Se ocorrer uma exceção durante a busca de informações, registre o erro na planilha
                 ERRO = str(e)
@@ -156,8 +156,3 @@ Essa estrutura de documentação fornece uma visão clara de cada parte do códi
 ### Resposta final
 ![image](https://github.com/rafaelgoncalves2201/Automacao_Palin-Martins/assets/156006438/ae1d9f7e-e7c2-4c5a-a988-11a5ff729e92)
 
-
-
-## API utilizada para eles
-
-[DataStone API](https://backoffice.datastone.com.br/docs/)
