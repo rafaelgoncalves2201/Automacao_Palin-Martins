@@ -35,7 +35,8 @@ selenium.webdriver: Para interagir com o navegador via Selenium.
 openpyxl: Para manipular arquivos Excel.
 time e datetime: Para manipulação de tempo e datas.
 
-Inicialização e Navegação no Site:
+
+### Parametro de consulta
 
         # Inicializar o WebDriver
         driver = webdriver.Chrome()
@@ -44,21 +45,27 @@ Inicialização e Navegação no Site:
         # Carregar a planilha Excel
         workbook = openpyxl.load_workbook('aiims.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
         sheet = workbook.active
-        
-        linha_planilha = 2  # Começar na segunda linha, supondo que a primeira linha seja cabeçalho
-        
-        # Definir tempo de espera máximo
-        time.sleep(0.5)
-        wait = WebDriverWait(driver, 0.5)
-        
-        # Define data de quando foi utilizado 
-        DATE = datetime.date.today().strftime("%d/%m/%Y")
+
+        try:
+            for col, nomeColunas in enumerate(nomeColunas, start=1):
+                sheet.cell(row=1, column=col).value = nomeColunas
+            # Loop pelas células com dados na planilha
+            for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
+                aiim = row[0]
+                aiim = str(aiim)
+
+### Parametro de formatção
         
         cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
         cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
         cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
-        
-        
+
+        nomeColunas = ["N°", "DRT", "D.AIIM", 
+                "CONTRIBUINTE", "CNPJ", 
+                "TELEFONE", "E-MAIL", 
+                "CNAE", "D.DIA", "SITUAÇÂO"
+                ]
+### Parametro de separação
         
         outros = {
                 "LITORAL", "OSASCO", 
@@ -68,23 +75,7 @@ Inicialização e Navegação no Site:
                 "Compliance MNM", "Compliance M&E"
                 }
         
-        
-        nomeColunas = ["N°", "DRT", "D.AIIM", 
-                    "CONTRIBUINTE", "CNPJ", 
-                    "TELEFONE", "E-MAIL", 
-                    "CNAE", "D.DIA", "SITUAÇÂO"
-                    ]
-        
-        try:
-            for col, nomeColunas in enumerate(nomeColunas, start=1):
-                sheet.cell(row=1, column=col).value = nomeColunas
-            # Loop pelas células com dados na planilha
-            for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
-                aiim = row[0]
-                aiim = str(aiim)
-        
-        sheet.cell(row=linha_planilha, column=2).value = "DRT"
-
+### Parametro de Funcionamento das consultas
         # Espere até que o campo de AIIM seja clicável e insira o valor
         aiim_input = wait.until(EC.element_to_be_clickable((By.NAME, 'ctl00$ConteudoPagina$TxtNumAIIM')))
         aiim_input.clear()  # Limpa o campo antes de inserir o próximo AIIM
@@ -93,7 +84,8 @@ Inicialização e Navegação no Site:
         # Espere até que o botão de pesquisa seja clicável e clique nele
         pesquisar = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@title='Clique para pesquisar por numero do aiim (sem o digito verificador)']")))
         pesquisar.click()
-        
+
+### Tratamento do balão de erro
         try:
             alert_wait = WebDriverWait(driver, timeout=0.5)
             alert = alert_wait.until(EC.alert_is_present())
@@ -101,7 +93,7 @@ Inicialização e Navegação no Site:
         except Exception as e:
             ERRO = "" # String Vazia
             DRT = ""
-            nomeColunas = "DRT, D.AIIM, CONTRIBUINTE, CNPJ, TELEFONE, E-MAIL, CNAE, D.DIA, SITUAÇÂO"
+### Selecionamento das variaveis definidas
             try:
                 # Espera até que o elemento com o ID 'ConteudoPagina_lblDRT' seja visível e obtenha o texto
                 elemento_drt = wait.until(EC.visibility_of_element_located((By.ID, 'ConteudoPagina_lblDRT')))
@@ -114,10 +106,11 @@ Inicialização e Navegação no Site:
                 # Pesquisar data
                 elemento_data = driver.find_element(By.CSS_SELECTOR, 'td.td1#dataEvento')
                 DATA = elemento_data.text
-                
+### Tratamento de erro caso não tenha informação
             except Exception as e:
                 # Se ocorrer uma exceção durante a busca de informações, registre o erro na planilha
                 ERRO = str(e)
+### Inserindo o resultado
             finally:
                 # Exibe a data do Dia
                 sheet.cell(row=linha_planilha, column=9).value = DATE
@@ -140,26 +133,28 @@ Inicialização e Navegação no Site:
                     sheet.cell(row=linha_planilha, column=10).value = "Outros"
                     for col in range(1, 11):
                         sheet.cell(row=linha_planilha, column=col).fill = cor_outros
-                    
-
+### Finalizando a primeira consulta e retonando para continuação
                 # Incrementar o contador de linha em qualquer caso
                 linha_planilha += 1
 
                 # Volte para a página inicial após cada iteração
                 driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
             
-
+### Salvando a resposta
         finally:
             # Salvar o arquivo Excel
             workbook.save('AiimsColetados.xlsx')  # Salvar com um novo nome para evitar a substituição do original
         
             # Fechar o navegador após o uso
             driver.quit()
-        
+### Avisando a finalização do processo
             # Enviar mensagem de êxito
             print("Processo concluído com êxito!")
 
 Essa estrutura de documentação fornece uma visão clara de cada parte do código e como elas contribuem para o objetivo final do script. Cada seção é descrita de forma sucinta e focada no que está sendo realizado, facilitando a compreensão e a manutenção futura do código.
+
+### Resposta final
+![image](https://github.com/rafaelgoncalves2201/Automacao_Palin-Martins/assets/156006438/ae1d9f7e-e7c2-4c5a-a988-11a5ff729e92)
 
 
 
