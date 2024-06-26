@@ -154,5 +154,5 @@ time e datetime: Para manipulação de tempo e datas.
 Essa estrutura de documentação fornece uma visão clara de cada parte do código e como elas contribuem para o objetivo final do script. Cada seção é descrita de forma sucinta e focada no que está sendo realizado, facilitando a compreensão e a manutenção futura do código.
 
 ### Resposta final
-![image](https://github.com/rafaelgoncalves2201/Automacao_Palin-Martins/assets/156006438/ae1d9f7e-e7c2-4c5a-a988-11a5ff729e92)
+![image](https://github.com/rafaelgoncalves2201/Automacao_Palin-Martins/assets/156006438/f8c763f1-e134-421d-bc9b-5d6e02c51fa5)
 
