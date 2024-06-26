@@ -37,51 +37,51 @@ time e datetime: Para manipulação de tempo e datas.
 
 Inicialização e Navegação no Site:
 
-# Inicializar o WebDriver
-driver = webdriver.Chrome()
-driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
-
-# Carregar a planilha Excel
-workbook = openpyxl.load_workbook('aiims.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
-sheet = workbook.active
-
-linha_planilha = 2  # Começar na segunda linha, supondo que a primeira linha seja cabeçalho
-
-# Definir tempo de espera máximo
-time.sleep(0.5)
-wait = WebDriverWait(driver, 0.5)
-
-# Define data de quando foi utilizado 
-DATE = datetime.date.today().strftime("%d/%m/%Y")
-
-cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
-cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
-cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
-
-
-
-outros = {
-        "LITORAL", "OSASCO", 
-        "CAPITAL I", "CAPITAL II", "CAPITAL III", 
-        "GUARULHOS", 
-        "DTE-II – FISCALIZAÇÃO ESPECIAL", "DTE-I – FISCALIZAÇÃO ESPECIAL",
-        "Compliance MNM", "Compliance M&E"
-        }
-
-
-nomeColunas = ["N°", "DRT", "D.AIIM", 
-            "CONTRIBUINTE", "CNPJ", 
-            "TELEFONE", "E-MAIL", 
-            "CNAE", "D.DIA", "SITUAÇÂO"
-            ]
-
-try:
-    for col, nomeColunas in enumerate(nomeColunas, start=1):
-        sheet.cell(row=1, column=col).value = nomeColunas
-    # Loop pelas células com dados na planilha
-    for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
-        aiim = row[0]
-        aiim = str(aiim)
+        # Inicializar o WebDriver
+        driver = webdriver.Chrome()
+        driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
+        
+        # Carregar a planilha Excel
+        workbook = openpyxl.load_workbook('aiims.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
+        sheet = workbook.active
+        
+        linha_planilha = 2  # Começar na segunda linha, supondo que a primeira linha seja cabeçalho
+        
+        # Definir tempo de espera máximo
+        time.sleep(0.5)
+        wait = WebDriverWait(driver, 0.5)
+        
+        # Define data de quando foi utilizado 
+        DATE = datetime.date.today().strftime("%d/%m/%Y")
+        
+        cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
+        cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
+        cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
+        
+        
+        
+        outros = {
+                "LITORAL", "OSASCO", 
+                "CAPITAL I", "CAPITAL II", "CAPITAL III", 
+                "GUARULHOS", 
+                "DTE-II – FISCALIZAÇÃO ESPECIAL", "DTE-I – FISCALIZAÇÃO ESPECIAL",
+                "Compliance MNM", "Compliance M&E"
+                }
+        
+        
+        nomeColunas = ["N°", "DRT", "D.AIIM", 
+                    "CONTRIBUINTE", "CNPJ", 
+                    "TELEFONE", "E-MAIL", 
+                    "CNAE", "D.DIA", "SITUAÇÂO"
+                    ]
+        
+        try:
+            for col, nomeColunas in enumerate(nomeColunas, start=1):
+                sheet.cell(row=1, column=col).value = nomeColunas
+            # Loop pelas células com dados na planilha
+            for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
+                aiim = row[0]
+                aiim = str(aiim)
         
         sheet.cell(row=linha_planilha, column=2).value = "DRT"
 
@@ -149,15 +149,15 @@ try:
                 driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
             
 
-finally:
-    # Salvar o arquivo Excel
-    workbook.save('AiimsColetados.xlsx')  # Salvar com um novo nome para evitar a substituição do original
-
-    # Fechar o navegador após o uso
-    driver.quit()
-
-    # Enviar mensagem de êxito
-    print("Processo concluído com êxito!")
+        finally:
+            # Salvar o arquivo Excel
+            workbook.save('AiimsColetados.xlsx')  # Salvar com um novo nome para evitar a substituição do original
+        
+            # Fechar o navegador após o uso
+            driver.quit()
+        
+            # Enviar mensagem de êxito
+            print("Processo concluído com êxito!")
 
 Essa estrutura de documentação fornece uma visão clara de cada parte do código e como elas contribuem para o objetivo final do script. Cada seção é descrita de forma sucinta e focada no que está sendo realizado, facilitando a compreensão e a manutenção futura do código.
 
