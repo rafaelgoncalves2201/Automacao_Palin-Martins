@@ -89,7 +89,7 @@ import shutil
 
 
 def formatar_numero(numero):
-    numero = numero.replace('.', '').replace('-', '')
+    numero = numero.replace('.', '').replace('-', '').replace(',', '')
     numero = numero[:7]
     return numero
 
@@ -122,8 +122,20 @@ cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
 cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
 cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
 
-aiims_valido = {"Notificação do AIIM"}
-aiims_verifi = {"Decurso de Prazo"}
+aiims_valido = {"Notificação do AIIM"
+                
+                }
+aiims_verifi = {"Decurso de Prazo"
+                }
+aiims_invalido = {"Inscrição na Dívida Ativa/ AIIM inscrito em dívida ativa",
+                "AIIM liquidado",
+                "AIIM enviado para a Unidade Fiscal da Cobrança.",
+                "Protocolo da Defesa",
+                "Entrada do processo na Delegacia Tributária de Julgamento.",
+                "Publicação no Diário Eletrônico",
+                "Distribuição da Defesa para Julgamento",
+                "Protocolo de Petição"
+                }
 
 nomeColunas = ["N°", "DRT", "D.AIIM",
                "CONTRIBUINTE", "CNPJ",
@@ -196,10 +208,20 @@ try:
                     sheet.cell(row=linha_planilha, column=3).value = DATA
                     sheet.cell(row=linha_planilha, column=4).value = NOME
                     sheet.cell(row=linha_planilha, column=5).value = DESC
-                    # Definindo data para comparação
-                    data_limite = datetime.datetime(2024, 1, 1)
+                    data_evento = datetime.datetime.strptime(DATA, "%d/%m/%Y").date()
+                    hoje = datetime.date.today()
+                    data_90_dias = hoje + datetime.timedelta(days=90)
+
                     # Comparação para tomada de decisão
-                    if DESC in aiims_valido and DESC in aiims_verifi and DATA > data_limite:
+                    if DESC in aiims_valido:
+                        sheet.cell(row=linha_planilha, column=10).value = "Passar ClickUp"
+                        for col in range(1, 11):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
+                    elif DESC in aiims_invalido:
+                        sheet.cell(row=linha_planilha, column=10).value = "Suspenso"
+                        for col in range(1, 11):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                    elif DESC in aiims_verifi and hoje <= data_evento <= data_90_dias:
                         sheet.cell(row=linha_planilha, column=10).value = "Passar ClickUp"
                         for col in range(1, 11):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
@@ -207,6 +229,7 @@ try:
                         sheet.cell(row=linha_planilha, column=10).value = "Suspenso"
                         for col in range(1, 11):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                            
 
 
 
@@ -219,7 +242,7 @@ try:
 
 finally:
     # Salvar o arquivo Excel
-    workbook.save('Verificação de Aiims Suspenso.xlsx')  # Salvar com um novo nome para evitar a substituição do original
+    workbook.save('Verificação de Aiims Suspenso 2.xlsx')  # Salvar com um novo nome para evitar a substituição do original
 
     # Fechar o navegador após o uso
     driver.quit()
