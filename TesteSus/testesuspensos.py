@@ -7,85 +7,85 @@ from selenium.webdriver.chrome.options import Options
 from openpyxl.styles import PatternFill
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import datetime
+from datetime import datetime
 import time
 import openpyxl
 import os
 import glob
 import shutil
 
-# # Configurações do WebDriver
-# servico = Service(ChromeDriverManager().install())
+# Configurações do WebDriver
+servico = Service(ChromeDriverManager().install())
 
-# opcoes = webdriver.ChromeOptions()
-# opcoes.add_argument('--headless=new')
-# driver = webdriver.Chrome(service=servico, options=opcoes)
+opcoes = webdriver.ChromeOptions()
+opcoes.add_argument('--headless=new')
+driver = webdriver.Chrome(service=servico, options=opcoes)
 
-# # Logar no ClickUp
-# driver.get("https://app.clickup.com/9007042349/v/l/6-901300861144-1")
-# print("Acessando o CRM para facilitar as buscas")
+# Logar no ClickUp
+driver.get("https://app.clickup.com/9007042349/v/l/6-901300861144-1")
+print("Acessando o CRM para facilitar as buscas")
 
-# driver.find_element('xpath', '//*[@id="login-email-input"]').send_keys('ti@pratickosolucoes.com.br')
-# driver.find_element('xpath', '//*[@id="login-password-input"]').send_keys('P4l1n&M4rt1ns@Clickup@Admin')
-# time.sleep(5)
-# # Sair di add
-# driver.find_element('xpath', '//*[@id="app-root"]/cu-login/div/div[2]/div[2]/div[1]/cu-login-form/div/form/button').click()
-# time.sleep(20)
-# # Clicar no filtro
-# driver.find_element('xpath', '//*[@id="app-root"]/cu-modal-keeper/cu-modal/div/div[2]/div[2]/div/cu-nux-modal/div/div[2]/button[1]').click()
-# time.sleep(5)
-# # Clicar para escolher filtro
-# driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[1]/div[2]/div/cu-filter-block[1]/div/cu-filter-value-list-dropdown/div/div/div/span').click()
-# time.sleep(4)
-# # Clicar no Status
-# driver.find_element('xpath', '//*[@id="cdk-overlay-1"]/div/div/cu-search-list/cdk-virtual-scroll-viewport/div[1]/div/div[1]').click()
-# time.sleep(3)
-# # Clica na opção
-# driver.find_element('xpath', '//*[@id="cdk-overlay-0"]/div/div/cu-filter-value-list/div[1]/cu-filter-value-list/cu-filter-value/div/cu-status-filter/div/div/div[2]').click()
-# time.sleep(3)
-# # Escrever "Em andamento"
-# driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[1]/div[1]/input').send_keys('Em Andamento')
-# time.sleep(4)
-# # Clicar na opção
-# driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[2]/cu-status-filter-type-block/div[2]/div[1]/span[2]').click()
-# time.sleep(3)
-# # Clicar em confirmar
-# driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[3]/div').click()
-# # Sair do filtro
-# pyautogui.press('esc')
-# time.sleep(5)
-# # Abrir a engrenagem
-# driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[1]/div[1]/div/button[2]').click()
-# time.sleep(6)
-# # Clicar no Importar
-# driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[3]/div/cu-dropdown-list-item[4]/button/div/div/cu-export-view/div/div/div').click()
-# time.sleep(6)
-# # Escolhe a opção de apenas nomes da tarefa
-# driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/cu-dropdown-list-item[2]').click()
-# # Escolhe a opção excel
-# driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/cu-dropdown-list-item[5]').click()
-# # Clica em baixar
-# driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/button/div[1]').click()
-# time.sleep(30)
-# driver.quit()
+driver.find_element('xpath', '//*[@id="login-email-input"]').send_keys('ti@pratickosolucoes.com.br')
+driver.find_element('xpath', '//*[@id="login-password-input"]').send_keys('P4l1n&M4rt1ns@Clickup@Admin')
+time.sleep(5)
+# Sair di add
+driver.find_element('xpath', '//*[@id="app-root"]/cu-login/div/div[2]/div[2]/div[1]/cu-login-form/div/form/button').click()
+time.sleep(20)
+# Clicar no filtro
+driver.find_element('xpath', '//*[@id="app-root"]/cu-modal-keeper/cu-modal/div/div[2]/div[2]/div/cu-nux-modal/div/div[2]/button[1]').click()
+time.sleep(5)
+# Clicar para escolher filtro
+driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[1]/div[2]/div/cu-filter-block[1]/div/cu-filter-value-list-dropdown/div/div/div/span').click()
+time.sleep(4)
+# Clicar no Status
+driver.find_element('xpath', '//*[@id="cdk-overlay-1"]/div/div/cu-search-list/cdk-virtual-scroll-viewport/div[1]/div/div[1]').click()
+time.sleep(3)
+# Clica na opção
+driver.find_element('xpath', '//*[@id="cdk-overlay-0"]/div/div/cu-filter-value-list/div[1]/cu-filter-value-list/cu-filter-value/div/cu-status-filter/div/div/div[2]').click()
+time.sleep(3)
+# Escrever "Em andamento"
+driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[1]/div[1]/input').send_keys('Em Andamento')
+time.sleep(4)
+# Clicar na opção
+driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[2]/cu-status-filter-type-block/div[2]/div[1]/span[2]').click()
+time.sleep(3)
+# Clicar em confirmar
+driver.find_element('xpath', '//*[@id="cdk-overlay-2"]/div/div[3]/div').click()
+# Sair do filtro
+pyautogui.press('esc')
+time.sleep(5)
+# Abrir a engrenagem
+driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[1]/div[1]/div/button[2]').click()
+time.sleep(6)
+# Clicar no Importar
+driver.find_element('xpath', '//*[@id="app-root"]/cu-app-shell/cu-manager/div[1]/div/div/main/cu-dashboard/div/cu-views-bar-container/cu2-views-bar/div[3]/div/cu-dropdown-list-item[4]/button/div/div/cu-export-view/div/div/div').click()
+time.sleep(6)
+# Escolhe a opção de apenas nomes da tarefa
+driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/cu-dropdown-list-item[2]').click()
+# Escolhe a opção excel
+driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/cu-dropdown-list-item[5]').click()
+# Clica em baixar
+driver.find_element('xpath', '//*[@id="cdk-overlay-3"]/div/button/div[1]').click()
+time.sleep(30)
+driver.quit()
 
-# # Gerenciar arquivos baixados
-# downloads = '/Users/Rafael/Downloads'
-# arquivo_xlsx = glob.glob(os.path.join(downloads, '*.xlsx'))
-# arquivo_recente = max(arquivo_xlsx, key=os.path.getctime)
-# diretorio = os.path.dirname(os.path.abspath(__file__))
-# destino_path = os.path.join(diretorio, "aiims desordenados.xlsx")
-# shutil.move(arquivo_recente, destino_path)
+# Gerenciar arquivos baixados
+downloads = '/Users/Rafael/Downloads'
+arquivo_xlsx = glob.glob(os.path.join(downloads, '*.xlsx'))
+arquivo_recente = max(arquivo_xlsx, key=os.path.getctime)
+diretorio = os.path.dirname(os.path.abspath(__file__))
+destino_path = os.path.join(diretorio, "aiims desordenados.xlsx")
+shutil.move(arquivo_recente, destino_path)
 
-# workbook = openpyxl.load_workbook('aiims desordenados.xlsx')
-# # Seleciona a planilha ativa
-# sheet = workbook.active
-# # Exclui as primeiras quatro linhas
-# sheet.delete_rows(1, 4)
-# # Insere uma nova linha no início da planilha
-# sheet.insert_rows(1)
-# # Salva as alterações no arquivo Excel
-# workbook.save('aiims.xlsx')
+workbook = openpyxl.load_workbook('aiims desordenados.xlsx')
+# Seleciona a planilha ativa
+sheet = workbook.active
+# Exclui as primeiras quatro linhas
+sheet.delete_rows(1, 4)
+# Insere uma nova linha no início da planilha
+sheet.insert_rows(1)
+# Salva as alterações no arquivo Excel
+workbook.save('aiims susp.xlsx')
 
 
 def formatar_numero(numero):
@@ -100,13 +100,13 @@ opcoes.add_argument('--headless=new')
 
 
 # Inicializar o WebDriver
-driver = webdriver.Chrome(service=servico)#, options=opcoes)
+driver = webdriver.Chrome(service=servico, options=opcoes)
 driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
 
 print("Processo de consulta sendo realizada")
 
 # Carregar a planilha Excel
-workbook = openpyxl.load_workbook('aiims.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
+workbook = openpyxl.load_workbook('aiims susp.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
 sheet = workbook.active
 
 linha_planilha = 2  # Começar na segunda linha, supondo que a primeira linha seja cabeçalho
@@ -116,7 +116,7 @@ time.sleep(0.5)
 wait = WebDriverWait(driver, 0.5)
 
 # Define data de quando foi utilizado
-DATE = datetime.date.today().strftime("%d/%m/%Y")
+DATE = datetime.today()
 
 cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
 cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
@@ -125,8 +125,10 @@ cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
 aiims_valido = {"Notificação do AIIM"
                 
                 }
+
 aiims_verifi = {"Decurso de Prazo"
                 }
+
 aiims_invalido = {"Inscrição na Dívida Ativa/ AIIM inscrito em dívida ativa",
                 "AIIM liquidado",
                 "AIIM enviado para a Unidade Fiscal da Cobrança.",
@@ -187,7 +189,7 @@ try:
                 # Pesquisar data
                 elemento_data = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="dataEvento"]')))
                 if elemento_data:
-                    DATA = elemento_data[-1].text
+                    DATA = datetime.strptime(elemento_data[-1].text, "%d/%m/%Y")
 
                 # Pesquisar descrição do andamento
                 elemento_desc = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="descricaoEvento"]')))
@@ -204,35 +206,46 @@ try:
                 # Verificar se há erro e escrever na planilha
 
                 if ERRO == "":
+                    sheet.cell(row=linha_planilha, column=10).value = DATE.strftime("%d/%m/%Y")
+                    
+                # Verificar se há erro e escrever na planilha
+                if ERRO == "":
                     sheet.cell(row=linha_planilha, column=2).value = DRT
-                    sheet.cell(row=linha_planilha, column=3).value = DATA
+                    sheet.cell(row=linha_planilha, column=3).value = DATA.strftime("%d/%m/%Y")
                     sheet.cell(row=linha_planilha, column=4).value = NOME
                     sheet.cell(row=linha_planilha, column=5).value = DESC
-                    data_evento = datetime.datetime.strptime(DATA, "%d/%m/%Y").date()
-                    hoje = datetime.date.today()
-                    data_90_dias = hoje + datetime.timedelta(days=90)
-
+                    
+                    def diferenca_boa(DATE, DATA):
+                    
+                        d1 = DATE
+                        d2 = DATA
+                        diferenca_a = abs(( d2 - d1 ).days)
+                        
+                        return diferenca_a < 90
+                    
                     # Comparação para tomada de decisão
                     if DESC in aiims_valido:
-                        sheet.cell(row=linha_planilha, column=10).value = "Passar ClickUp"
-                        for col in range(1, 11):
+                        sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
                     elif DESC in aiims_invalido:
-                        sheet.cell(row=linha_planilha, column=10).value = "Suspenso"
-                        for col in range(1, 11):
+                        sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_outros
-                    elif DESC in aiims_verifi and hoje <= data_evento <= data_90_dias:
-                        sheet.cell(row=linha_planilha, column=10).value = "Passar ClickUp"
-                        for col in range(1, 11):
+                    elif DESC in aiims_verifi:
+                        sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
+                        for col in range(1, 12):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
+                    elif DATA and diferenca_boa(DATE, DATA):
+                        sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
                     else:
-                        sheet.cell(row=linha_planilha, column=10).value = "Suspenso"
-                        for col in range(1, 11):
+                        sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_outros
                             
-
-
-
+                        
                 # Incrementar o contador de linha em qualquer caso
                 linha_planilha += 1
 
@@ -242,7 +255,7 @@ try:
 
 finally:
     # Salvar o arquivo Excel
-    workbook.save('Verificação de Aiims Suspenso 2.xlsx')  # Salvar com um novo nome para evitar a substituição do original
+    workbook.save('Verificação de Aiims Suspenso.xlsx')  # Salvar com um novo nome para evitar a substituição do original
 
     # Fechar o navegador após o uso
     driver.quit()

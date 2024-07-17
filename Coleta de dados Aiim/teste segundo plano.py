@@ -8,12 +8,11 @@ from openpyxl.styles import PatternFill
 import openpyxl
 import time
 import datetime
+from tkinter import *
 
 servico = Service(ChromeDriverManager().install())
-
 opcoes = webdriver.ChromeOptions()
 opcoes.add_argument('--headless=new')
-
 # Inicializar o WebDriver
 driver = webdriver.Chrome(service=servico, options=opcoes)
 driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
@@ -93,8 +92,9 @@ try:
                 NOME = elemento_nome.text
 
                 # Pesquisar data
-                elemento_data = driver.find_element(By.CSS_SELECTOR, 'td.td1#dataEvento')
-                DATA = elemento_data.text
+                elemento_data = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="dataEvento"]')))
+                if elemento_data:
+                    DATA = elemento_data[-1].text
                 
                 # Pesquisar descrição do andamento
                 elemento_desc = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="descricaoEvento"]')))

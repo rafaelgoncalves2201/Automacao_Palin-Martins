@@ -1,15 +1,16 @@
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl.styles import PatternFill
 import openpyxl
 import time
-import datetime
 
 servico = Service(ChromeDriverManager().install())
+
 opcoes = webdriver.ChromeOptions()
 opcoes.add_argument('--headless=new')
 
@@ -28,13 +29,26 @@ time.sleep(0.5)
 wait = WebDriverWait(driver, 0.5)
 
 # Define data de quando foi utilizado 
-DATE = datetime.date.today().strftime("%d/%m/%Y")
+DATE = datetime.today()
 
 cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
 cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
 cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
 
 aiims_valido = {"Notificação do AIIM"}
+
+aiims_verifi = {"Decurso de Prazo"
+                }
+
+aiims_invalido = {"Inscrição na Dívida Ativa/ AIIM inscrito em dívida ativa",
+                "AIIM liquidado",
+                "AIIM enviado para a Unidade Fiscal da Cobrança.",
+                "Protocolo da Defesa",
+                "Entrada do processo na Delegacia Tributária de Julgamento.",
+                "Publicação no Diário Eletrônico",
+                "Distribuição da Defesa para Julgamento",
+                "Protocolo de Petição"
+                }
 
 outros = {
         "LITORAL", "OSASCO", 
@@ -92,8 +106,9 @@ try:
                 NOME = elemento_nome.text
 
                 # Pesquisar data
-                elemento_data = driver.find_element(By.CSS_SELECTOR, 'td.td1#dataEvento')
-                DATA = elemento_data.text
+                elemento_data = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="dataEvento"]')))
+                if elemento_data:
+                    DATA = datetime.strptime(elemento_data[-1].text, "%d/%m/%Y")
                 
                 # Pesquisar descrição do andamento
                 elemento_desc = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="descricaoEvento"]')))
@@ -106,22 +121,41 @@ try:
             
             finally:
                 # Exibe a data do Dia
-                sheet.cell(row=linha_planilha, column=10).value = DATE
+                sheet.cell(row=linha_planilha, column=10).value = DATE.strftime("%d/%m/%Y")
                 # Verificar se há erro e escrever na planilha
                 
                 if ERRO == "":
                     sheet.cell(row=linha_planilha, column=2).value = DRT
-                    sheet.cell(row=linha_planilha, column=3).value = DATA
+                    sheet.cell(row=linha_planilha, column=3).value = DATA.strftime("%d/%m/%Y")
                     sheet.cell(row=linha_planilha, column=4).value = NOME
                     sheet.cell(row=linha_planilha, column=5).value = DESC
-                    sheet.cell(row=linha_planilha, column=11).value = "Passar Click Up"
+                    def diferenca_boa(DATE, DATA):
+                    
+                        d1 = DATE
+                        d2 = DATA
+                        diferenca_a = abs(( d2 - d1 ).days)
+                        
+                        return diferenca_a < 90
+                     # Comparação para tomada de decisão
                     if DESC in aiims_valido:
                         sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
-                        for col in range(1, 11):
+                        for col in range(1, 12):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
+                    elif DESC in aiims_invalido:
+                        sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
+                        for col in range(1, 12):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                    elif DESC in aiims_verifi:
+                        sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
+                        for col in range(1, 12):
+                            sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
+                    elif DATA and diferenca_boa(DATE, DATA):
+                        sheet.cell(row=linha_planilha, column=11).value = "Passar ClickUp"
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
                     else:
                         sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
-                        for col in range(1, 11):
+                        for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_outros
                 
                 else:
