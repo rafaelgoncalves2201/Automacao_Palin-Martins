@@ -57,30 +57,34 @@ def esconder_progress_bar():
 def atualizar_progress_bar(valor):
     progress_bar['value'] = valor
     janela.update_idletasks()
+    
+def cancelar_processo_funcao():
+    global cancelar_processo
+    cancelar_processo = True
+    exibir("Cancelar", "Processo cancelado.")
+    esconder_progress_bar()
+    if driver:
+        driver.quit()
 
-def executar_processo():
+def iniciar_processo():
     if not file_path:
         exibir("Erro", "Por favor, selecione uma planilha primeiro.")
         return
 
     exibir("Processo", "Processo iniciado, por favor aguarde...")
     mostrar_progress_bar()
-    
-    global cancelar
-    cancelar = False
 
     thread = threading.Thread(target=processo_automacao)
     thread.start()
 
 def processo_automacao():
-    global cancelar
-    driver = None
+    global driver, file_path, cancelar_processo
 
     if not file_path:
         return
 
     try:
-        servico = Service(ChromeDriverManager().install())
+        servico = Service()
         opcoes = webdriver.ChromeOptions()
         opcoes.add_argument('--headless=new')
         driver = webdriver.Chrome(service=servico, options=opcoes)
@@ -112,19 +116,22 @@ def processo_automacao():
             sheet.cell(row=1, column=col).value = nomeColuna
 
         total_rows = len(list(sheet.iter_rows(min_row=2, max_col=1, values_only=True)))
-        for index, row in enumerate(sheet.iter_rows(min_row=2, max_col=1, values_only=True), start=1):
-            if cancelar:
-                break  # Interrompe o loop se o cancelamento for solicitado
+        atualizar_progress_bar(0)  # Inicializa a barra de progresso com 0%
 
+        for index, row in enumerate(sheet.iter_rows(min_row=2, max_col=1, values_only=True), start=1):
+            if cancelar_processo:
+                exibir("Cancelar", "Processo cancelado.")
+                break
+            
             aiim = row[0]
             if aiim is None or aiim == "":
                 continue
 
             sheet.cell(row=linha_planilha, column=2).value = "DRT"
-            aiim_form = formatar_aiim(str(aiim))
+            aiim_format = formatar_aiim(str(aiim))
             aiim_input = wait.until(EC.element_to_be_clickable((By.NAME, 'ctl00$ConteudoPagina$TxtNumAIIM')))
             aiim_input.clear()
-            aiim_input.send_keys(aiim_form)
+            aiim_input.send_keys(aiim_format)
 
             pesquisar = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@title='Clique para pesquisar por numero do aiim (sem o digito verificador)']")))
             pesquisar.click()
@@ -177,14 +184,17 @@ def processo_automacao():
                             sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
                             for col in range(1, 12):
                                 sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                                
                         if desc in aiims_invalido:
                             sheet.cell(row=linha_planilha, column=11).value = "Suspenso"
                             for col in range(1, 12):
                                 sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                                
                         if DRT in outros:
                             sheet.cell(row=linha_planilha, column=11).value = "Outros"
                             for col in range(1, 12):
                                 sheet.cell(row=linha_planilha, column=col).fill = cor_outros
+                                
                     else:
                         sheet.cell(row=linha_planilha, column=2).value = "Erro"
                         sheet.cell(row=linha_planilha, column=11).value = "Não tem ainda"
@@ -195,44 +205,33 @@ def processo_automacao():
                     driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
 
             atualizar_progress_bar((index / total_rows) * 100)
-
-        if not cancelar:
-            exibir("Pronto", "Processo finalizado salve a planilha")
-            save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")], title="Salvar planilha como")
-            if save_path:
-                workbook.save(save_path)
-            janela.event_generate("<<ProcessoConcluido>>")
+            
+            
 
     except Exception as e:
         janela.event_generate("<<ProcessoErro>>", data=str(e))
+        
     finally:
-        if driver:
-            driver.quit()
-            esconder_progress_bar()
-            if not cancelar:
+        if not cancelar_processo:
+            exibir("Processo finalizado ", "Salve a planilha")
+            janela.event_generate("<<ProcessoConcluido>>")
+            save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")], title="Salvar planilha como")
+            if save_path:  # Verifica se o caminho de salvamento não é vazio
+                workbook.save(save_path)
                 exibir("Pronto", "Tudo Salvo")
                 janela.event_generate("<<ProcessoSalvo>>")
         else:
-            esconder_progress_bar()
-            if cancelar:
-                exibir("Aviso", "Processo cancelado. Nada foi salvo.")
-            else:
-                exibir("Pronto", "Tudo Salvo")
-                janela.event_generate("<<ProcessoSalvo>>")
+            exibir("Aviso", "Processo finalizado, nada foi salvo")
+        esconder_progress_bar()
+        if driver:
+            driver.quit()
+
 
 def atualizar_status(event):
-    exibir("Pronto", "Processo finalizado salve a planilha")
+    exibir("Processo finalizado ", "Salve a planilha")
     
 def atualizar_salvamento(event):
     exibir("Pronto", "Tudo Salvo")
-
-def cancelar():
-    global cancelar
-    cancelar = True
-    exibir("Aviso", "Processo cancelado. Por favor, aguarde...")
-    if not progress_bar['value'] == 100:
-        progress_bar['value'] = 100
-        janela.update_idletasks()
 
 def mostrar_erro(event):
     exibir("Erro", f"Erro inesperado: {event.data}")
@@ -242,8 +241,9 @@ def nova_consulta():
     file_path = None
     exibir("Calma", "Nova consulta iniciada. Adicione uma nova planilha.")
     mensagem_label.config(text="", fg="black")
-    progress_bar['value'] = 0
-    janela.update_idletasks()
+    atualizar_progress_bar(0)
+    
+    janela.event_generate("<<NovaConsultaIniciada>>")
     
 # Criação da janela principal
 janela = tk.Tk()
@@ -280,14 +280,14 @@ button_frame.pack(pady=20)
 planilha_btn = tk.Button(button_frame, text="Adicionar Planilha", command=escolher_planilha, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 planilha_btn.pack(pady=10)
 
-iniciar_btn = tk.Button(button_frame, text="Iniciar", command=executar_processo, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+iniciar_btn = tk.Button(button_frame, text="Iniciar", command=iniciar_processo, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 iniciar_btn.pack(pady=10)
-
-cancelar_btn = tk.Button(body_frame, text="Cancelar processo", command=cancelar, bg="#f0371d", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
-cancelar_btn.pack(pady=10)
 
 nova_consulta_btn = tk.Button(janela, text="Iniciar nova consulta", bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 nova_consulta_btn.pack(pady=10)
+
+cancelar_btn = tk.Button(janela, text="Cancelar", command=cancelar_processo_funcao, bg="#dc3545", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+cancelar_btn.pack(pady=10)
 
 mensagem_label = tk.Label(body_frame, text="", bg="#f8f9fa", font=("Helvetica", 12))
 mensagem_label.pack(pady=10)
@@ -296,10 +296,18 @@ mensagem_label.pack(pady=10)
 progress_bar = ttk.Progressbar(body_frame, orient="horizontal", length=400, mode="determinate")
 
 file_path = None
-cancelar = False
+cancelar_processo = False
+driver = None
+thread_processo = None
 
+def atualizar_nova_consulta(event):
+    exibir("Nova consulta", "Adicione uma nova planilha.")
+    atualizar_progress_bar(0)
+    
+janela.bind("<<NovaConsultaIniciada>>", atualizar_nova_consulta)
 janela.bind("<<ProcessoConcluido>>", atualizar_status)
 janela.bind("<<ProcessoSalvo>>", atualizar_salvamento)
 janela.bind("<<ProcessoErro>>", mostrar_erro)
 
 janela.mainloop()
+# pyinstaller --onefile --windowed --add-data "imgs/palinico.ico;imgs" --icon=imgs/palinico.ico Consulta.py
