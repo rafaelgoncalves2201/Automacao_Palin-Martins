@@ -1,45 +1,39 @@
 import os
 import sys
 import threading
-from tkinter import ttk
+import re
 from datetime import datetime
-from tkinter import filedialog
-import tkinter as tk
+from tkinter import ttk, filedialog, Tk, Label, Frame, Button
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
-import re
+# Carregar ícone
+def carregar_icone():
+    base_path = getattr(sys, 'frozen', False) and sys._MEIPASS or os.path.dirname(__file__)
+    return os.path.join(base_path, "imgs", "palinico.ico")
 
 def normalizar_descricao(desc):
-    padrao_decurso_prazo = r'\bDecurso de Prazo\b.*'
-    padrao_distribuicao_julgamento = r'\bDistribuição da Defesa para Julgamento\b.*'
-    padrao_peticao = r'\bProtocolo de Petição\b.*'
-    
-    if re.search(padrao_decurso_prazo, desc):
-        return re.sub(padrao_decurso_prazo, 'Decurso de Prazo', desc).strip()
-    
-    if re.search(padrao_distribuicao_julgamento, desc):
-        return re.sub(padrao_distribuicao_julgamento, 'Distribuição da Defesa para Julgamento', desc).strip()
-    
-    if re.search(padrao_peticao, desc):
-        return re.sub(padrao_peticao, 'Protocolo de Petição', desc).strip()
-    
+    padroes = {
+        r'\bDecurso de Prazo\b.*': 'Decurso de Prazo',
+        r'\bDistribuição da Defesa para Julgamento\b.*': 'Distribuição da Defesa para Julgamento',
+        r'\bProtocolo de Petição\b.*': 'Protocolo de Petição'
+    }
+    for padrao, substituicao in padroes.items():
+        if re.search(padrao, desc):
+            return re.sub(padrao, substituicao, desc).strip()
     return desc.strip()
 
 def formatar_aiim(aiim):
     apenas_numeros = re.sub(r'\D', '', aiim)
-    if len(apenas_numeros) >= 8:
-        apenas_numeros = apenas_numeros[:7] + apenas_numeros[8:]
-    return apenas_numeros
+    return apenas_numeros[:7] + apenas_numeros[8:] if len(apenas_numeros) >= 8 else apenas_numeros
 
 def exibir(tipo, texto):
-    cor = "black" if tipo in ["Sucesso", "Processo"] else "black"
-    mensagem_label.config(text=texto, fg=cor)
+    mensagem_label.config(text=texto, fg="black")
 
 def escolher_planilha():
     global file_path
@@ -74,37 +68,58 @@ def iniciar_processo():
     exibir("Processo", "Processo iniciado, por favor aguarde...")
     mostrar_progress_bar()
 
-    thread = threading.Thread(target=processo_automacao)
-    thread.start()
+    threading.Thread(target=processo_automacao).start()
+    
+def navegador():
+    global driver
+    if driver is None:
+        servico = Service(ChromeDriverManager().install())
+        opcoes = webdriver.ChromeOptions()
+        opcoes.add_argument('--headless')
+        opcoes.add_argument('--disable-gpu')
+        opcoes.add_argument('--no-sandbox')
+        opcoes.add_argument('--disable-dev-shm-usage')
+        driver = webdriver.Chrome(service=servico, options=opcoes)
+    return driver
+
+def salvar_planilha(workbook):
+    save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")], title="Salvar planilha como")
+    if save_path:
+        workbook.save(save_path)
+        exibir("Pronto", "Planilha salva com sucesso.")
+        janela.event_generate("<<ProcessoSalvo>>")
 
 def processo_automacao():
     global driver, file_path, cancelar_processo
 
     if not file_path:
         return
+    
+    driver = navegador()
 
     try:
-        servico = Service()
-        opcoes = webdriver.ChromeOptions()
-        opcoes.add_argument('--headless=new')
-        driver = webdriver.Chrome(service=servico, options=opcoes)
         driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
 
         workbook = load_workbook(file_path)
         sheet = workbook.active
         linha_planilha = 2
-        wait = WebDriverWait(driver, 0.1)
+        wait = WebDriverWait(driver, 0.5)
 
         DATE = datetime.today()
         cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
         cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
         cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
 
-        aiims_valido = {"Notificação do AIIM", "Inscrição na Dívida Ativa/ AIIM inscrito em dívida ativa",
-                        "AIIM enviado para a Unidade Fiscal da Cobrança.", "Decurso de Prazo"}
+        aiims_valido = {"Notificação do AIIM",
+                        "Inscrição na Dívida Ativa/ AIIM inscrito em dívida ativa",
+                        "AIIM enviado para a Unidade Fiscal da Cobrança.", "Decurso de Prazo",
+                        "Ratificação do AIIM"}
+        
         aiims_invalido = {"AIIM liquidado", "Protocolo da Defesa", "Protocolo de Petição",
                           "Entrada do processo na Delegacia Tributária de Julgamento.",
-                          "Publicação no Diário Eletrônico", "Distribuição da Defesa para Julgamento", "Protocolo de Petição"}
+                          "Publicação no Diário Eletrônico",
+                          "Distribuição da Defesa para Julgamento", "Protocolo de Petição"}
+        
         outros = {"LITORAL", "OSASCO", "CAPITAL I", "CAPITAL II", "CAPITAL III", "GUARULHOS",
                   "DTE-II – FISCALIZAÇÃO ESPECIAL", "DTE-I – FISCALIZAÇÃO ESPECIAL",
                   "Compliance MNM", "Compliance M&E"}
@@ -160,9 +175,16 @@ def processo_automacao():
                         DATA = datetime.strptime(elemento_data[-1].text, "%d/%m/%Y")
 
                     elemento_desc = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="descricaoEvento"]')))
-                    if elemento_desc:
-                        DESC = elemento_desc[-1].text
-
+                    
+                    ultima_situacao = None
+                    for elemento in elemento_desc:
+                        descricao = elemento.text
+                        ultima_situacao = descricao
+                        if any(invalido in descricao for invalido in aiims_invalido):
+                            break
+                        
+                    DESC = ultima_situacao
+                    
                 except Exception as e:
                     ERRO = str(e)
 
@@ -201,27 +223,16 @@ def processo_automacao():
                         for col in range(1, 12):
                             sheet.cell(row=linha_planilha, column=col).fill = cor_naotem
 
-                    linha_planilha += 1
                     driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
 
-            atualizar_progress_bar((index / total_rows) * 100)
-            
-            
-
+                    atualizar_progress_bar((index / total_rows) * 100)
+                    linha_planilha += 1
+                    
     except Exception as e:
         janela.event_generate("<<ProcessoErro>>", data=str(e))
-        
+              
     finally:
-        if not cancelar_processo:
-            exibir("Processo finalizado ", "Salve a planilha")
-            janela.event_generate("<<ProcessoConcluido>>")
-            save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")], title="Salvar planilha como")
-            if save_path:  # Verifica se o caminho de salvamento não é vazio
-                workbook.save(save_path)
-                exibir("Pronto", "Tudo Salvo")
-                janela.event_generate("<<ProcessoSalvo>>")
-        else:
-            exibir("Aviso", "Processo finalizado, nada foi salvo")
+        salvar_planilha(workbook)    
         esconder_progress_bar()
         if driver:
             driver.quit()
@@ -237,16 +248,24 @@ def mostrar_erro(event):
     exibir("Erro", f"Erro inesperado: {event.data}")
     
 def nova_consulta():
-    global file_path
+    global file_path, cancelar_processo, driver
+    
     file_path = None
+    cancelar_processo = True
+    
+    if driver:
+        driver.quit()
+        driver = None
+    
     exibir("Calma", "Nova consulta iniciada. Adicione uma nova planilha.")
     mensagem_label.config(text="", fg="black")
     atualizar_progress_bar(0)
     
-    janela.event_generate("<<NovaConsultaIniciada>>")
+    progress_bar['value'] = 0
+    janela.update_idletasks()
     
 # Criação da janela principal
-janela = tk.Tk()
+janela = Tk()
 janela.title("Automação para Consulta de Aiims")
 janela.geometry("800x600")
 janela.configure(bg="#f8f9fa")
@@ -262,34 +281,34 @@ def carregar_icone():
 icone_path = carregar_icone()
 janela.iconbitmap(icone_path)
 
-header_frame = tk.Frame(janela, bg="#007bff", padx=20, pady=10)
+header_frame = Frame(janela, bg="#007bff", padx=20, pady=10)
 header_frame.pack(fill="x")
 
-header_label = tk.Label(header_frame, text="Automação para Consulta de Aiims", bg="#007bff", fg="white", font=("Helvetica", 16, "bold"))
+header_label = Label(header_frame, text="Automação para Consulta de Aiims", bg="#007bff", fg="white", font=("Helvetica", 16, "bold"))
 header_label.pack()
 
-body_frame = tk.Frame(janela, bg="#f8f9fa")
+body_frame = Frame(janela, bg="#f8f9fa")
 body_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-instruction_label = tk.Label(body_frame, text="Por favor, adicione a planilha Excel contendo os Aiims:", bg="#f8f9fa", fg="#495057", font=("Helvetica", 12))
+instruction_label = Label(body_frame, text="Por favor, adicione a planilha Excel contendo os Aiims:", bg="#f8f9fa", fg="#495057", font=("Helvetica", 12))
 instruction_label.pack(pady=10)
 
-button_frame = tk.Frame(body_frame, bg="#f8f9fa")
+button_frame = Frame(body_frame, bg="#f8f9fa")
 button_frame.pack(pady=20)
 
-planilha_btn = tk.Button(button_frame, text="Adicionar Planilha", command=escolher_planilha, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+planilha_btn = Button(button_frame, text="Adicionar Planilha", command=escolher_planilha, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 planilha_btn.pack(pady=10)
 
-iniciar_btn = tk.Button(button_frame, text="Iniciar", command=iniciar_processo, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+iniciar_btn = Button(button_frame, text="Iniciar", command=iniciar_processo, bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 iniciar_btn.pack(pady=10)
 
-nova_consulta_btn = tk.Button(janela, text="Iniciar nova consulta", bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+nova_consulta_btn = Button(janela, text="Iniciar nova consulta", bg="#007bff", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 nova_consulta_btn.pack(pady=10)
 
-cancelar_btn = tk.Button(janela, text="Cancelar", command=cancelar_processo_funcao, bg="#dc3545", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
+cancelar_btn = Button(janela, text="Cancelar", command=cancelar_processo_funcao, bg="#dc3545", fg="white", font=("Helvetica", 12), relief="flat", padx=10, pady=5)
 cancelar_btn.pack(pady=10)
 
-mensagem_label = tk.Label(body_frame, text="", bg="#f8f9fa", font=("Helvetica", 12))
+mensagem_label = Label(body_frame, text="", bg="#f8f9fa", font=("Helvetica", 12))
 mensagem_label.pack(pady=10)
 
 # Barra de Progresso
@@ -298,7 +317,6 @@ progress_bar = ttk.Progressbar(body_frame, orient="horizontal", length=400, mode
 file_path = None
 cancelar_processo = False
 driver = None
-thread_processo = None
 
 def atualizar_nova_consulta(event):
     exibir("Nova consulta", "Adicione uma nova planilha.")
