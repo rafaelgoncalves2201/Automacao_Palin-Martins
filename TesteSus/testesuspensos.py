@@ -22,11 +22,11 @@ opcoes.add_argument('--headless=new')
 driver = webdriver.Chrome(service=servico, options=opcoes)
 
 # Logar no ClickUp
-driver.get("https://app.clickup.com/9007042349/v/l/6-901300861144-1")
+driver.get("link")
 print("Acessando o CRM para facilitar as buscas")
 
-driver.find_element('xpath', '//*[@id="login-email-input"]').send_keys('ti@pratickosolucoes.com.br')
-driver.find_element('xpath', '//*[@id="login-password-input"]').send_keys('P4l1n&M4rt1ns@Clickup@Admin')
+driver.find_element('xpath', '//*[@id="login-email-input"]').send_keys('exemplo')
+driver.find_element('xpath', '//*[@id="login-password-input"]').send_keys('exemplo')
 time.sleep(5)
 # Sair di add
 driver.find_element('xpath', '//*[@id="app-root"]/cu-login/div/div[2]/div[2]/div[1]/cu-login-form/div/form/button').click()
