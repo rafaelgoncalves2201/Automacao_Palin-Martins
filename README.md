@@ -6,40 +6,40 @@ Este script é projetado para automatizar a coleta de informações de sites sob
 
 Selenium: Utilizada para interagir com o navegador, simular cliques, entrada de texto e navegação por páginas web.
 
-Webdriver-manager: Facilita a instalação e o gerenciamento do ChromeDriver.
+    Webdriver-manager: Facilita a instalação e o gerenciamento do ChromeDriver.
 
-OpenPyXL: Utilizada para manipular arquivos Excel, permitindo a leitura e gravação de dados nas células da planilha.
+    OpenPyXL: Utilizada para manipular arquivos Excel, permitindo a leitura e gravação de dados nas células da planilha.
 
 
 3. Funcionamento do Script
 
 3.1 Instalação do WebDriver
 
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-servico = Service(ChromeDriverManager().install())
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    servico = Service(ChromeDriverManager().install())
 
 Utilizamos o webdriver-manager para instalar automaticamente o ChromeDriver, que é necessário para a interação do Selenium com o navegador.
 
 3.2 Configuração do Navegador
 
-opcoes = webdriver.ChromeOptions()
-opcoes.add_argument('--headless=new')  # O modo headless executa o navegador sem abrir uma interface gráfica
-driver = webdriver.Chrome(service=servico, options=opcoes)
+    opcoes = webdriver.ChromeOptions()
+    opcoes.add_argument('--headless=new')  # O modo headless executa o navegador sem abrir uma interface gráfica
+    driver = webdriver.Chrome(service=servico, options=opcoes)
 
 Configuramos o Chrome para rodar no modo headless (sem interface gráfica), o que é útil para automações em servidores ou processos em segundo plano.
 
 3.3 Leitura da Planilha Excel
 
-import openpyxl
-workbook = openpyxl.load_workbook('computadores.xlsx')  # Substitua pelo nome do arquivo Excel
-sheet = workbook.active
+    import openpyxl
+    workbook = openpyxl.load_workbook('computadores.xlsx')  # Substitua pelo nome do arquivo Excel
+    sheet = workbook.active
 
 O arquivo Excel é carregado, e a planilha ativa é selecionada. A planilha contém dados como nomes ou IDs de produtos que serão utilizados na pesquisa.
 
 3.4 Estrutura do Loop Principal
 
-for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
+    for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
     produto = row[0]
     if produto is None or produto == "":
         continue
@@ -64,24 +64,24 @@ O código para realizar uma busca no site ainda está abstrato, mas o fluxo típ
 
 Exemplo básico de interação com elementos da página:
 
-# Esperar até que o campo de pesquisa seja clicável e inserir o valor
-input_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, 'campo_de_pesquisa')))
-input_element.send_keys(produto)
+    # Esperar até que o campo de pesquisa seja clicável e inserir o valor
+    input_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, 'campo_de_pesquisa')))
+    input_element.send_keys(produto)
 
-# Clicar no botão de pesquisa
-search_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="pesquisar"]')))
-search_button.click()
+    # Clicar no botão de pesquisa
+    search_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="pesquisar"]')))
+    search_button.click()
 
 # Coletar dados do resultado
-resultado = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'resultado')))
-dados = resultado.text
+    resultado = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'resultado')))
+    dados = resultado.text
 
 3.6 Escrevendo os Resultados no Excel
 
 Após coletar os dados, o script os insere na planilha:
 
-sheet.cell(row=linha_atual, column=5).value = dados  # Exemplo de inserção de dados coletados
-linha_atual += 1
+    sheet.cell(row=linha_atual, column=5).value = dados  # Exemplo de inserção de dados coletados
+    linha_atual += 1
 
 Cada resultado é inserido na célula correspondente.
 
@@ -89,15 +89,15 @@ Cada resultado é inserido na célula correspondente.
 
 Após o término do loop e a coleta dos dados, o arquivo Excel é salvo:
 
-workbook.save('Computadores_Coletados.xlsx')  # Salvar com um novo nome para evitar sobrescrever o original
+    workbook.save('Computadores_Coletados.xlsx')  # Salvar com um novo nome para evitar sobrescrever o original
 
 4. Tratamento de Exceções
 
 Durante a coleta de dados, podem ocorrer erros como problemas de conexão ou elementos não encontrados na página. O código utiliza blocos try-except para tratar esses casos e evitar a interrupção do script:
 
-try:
+    try:
     # Código para interagir com o site
-except Exception as e:
+    except Exception as e:
     print(f"Erro ao coletar dados: {str(e)}")
 
 5. Estrutura da Planilha Excel
@@ -111,8 +111,8 @@ Resultados: Informações coletadas do site, como preço, especificações, etc.
 
 Exemplo de cabeçalhos no Excel:
 
-nomeColunas = ["ID Produto", "Nome Produto", "Preço", "Especificações", "Descrição"]
-for col, nome in enumerate(nomeColunas, start=1):
+    nomeColunas = ["ID Produto", "Nome Produto", "Preço", "Especificações", "Descrição"]
+    for col, nome in enumerate(nomeColunas, start=1):
     sheet.cell(row=1, column=col).value = nome
 
 6. Considerações Finais
