@@ -1,158 +1,131 @@
-# Automacão Palin
-Automação para equipe do Pré-Vendas da Palin &amp; Martins
-## Automação de Extração de Dados
+1. Descrição Geral
+
+Este script é projetado para automatizar a coleta de informações de sites sobre computadores, utilizando as bibliotecas Selenium (para automação de navegação na web) e OpenPyXL (para manipulação de arquivos Excel). A coleta de dados pode incluir informações como especificações técnicas, preços e descrições de produtos. A lógica do código baseia-se em iterar sobre entradas de uma planilha Excel, pesquisar os dados em um site específico e salvar os resultados na mesma planilha.
+
+2. Bibliotecas Utilizadas
+
+Selenium: Utilizada para interagir com o navegador, simular cliques, entrada de texto e navegação por páginas web.
+
+Webdriver-manager: Facilita a instalação e o gerenciamento do ChromeDriver.
+
+OpenPyXL: Utilizada para manipular arquivos Excel, permitindo a leitura e gravação de dados nas células da planilha.
 
 
-Este script Python foi desenvolvido para automatizar o processo de extração de dados definidas. Ele utiliza a biblioteca Selenium para interagir com o navegador e openpyxl para manipular planilhas Excel. O objetivo é extrair informações desse site.
+3. Funcionamento do Script
 
-### Pré-requisitos
+3.1 Instalação do WebDriver
 
-1. [Python 3.x](https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe)
-2. [documentação Python](https://docs.python.org/pt-br/3/tutorial/)
-3. [Vs Code](https://code.visualstudio.com/)
-4. Bibliotecas a ser baixadas no Visual Code
-5. [Selenium](https://selenium-python.readthedocs.io/)
-6. [openpyxl](https://openpyxl.readthedocs.io/en/stable/)
-7. [WebDriver para o navegador Chrome](https://www.selenium.dev/pt-br/documentation/webdriver/)
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+servico = Service(ChromeDriverManager().install())
 
-### Instalação
+Utilizamos o webdriver-manager para instalar automaticamente o ChromeDriver, que é necessário para a interação do Selenium com o navegador.
 
-1. Clone o repositório para sua máquina local ou virtual para rodar em segndo plano.
-2. Instale as dependências executando o comando `pip install openpyxl selenium`.
-3. Certifique-se de ter o WebDriver para o navegador Chrome instalado e configurado no seu PATH.
+3.2 Configuração do Navegador
 
-### Utilização
+opcoes = webdriver.ChromeOptions()
+opcoes.add_argument('--headless=new')  # O modo headless executa o navegador sem abrir uma interface gráfica
+driver = webdriver.Chrome(service=servico, options=opcoes)
 
-1. Adicione os números que deseja pesquisar na planilha Excel 'nome_definido_por_vc.xlsx'.
-2. Não esqueca de formatar o o jeito da busca Ex: `"9999999" sem virgulas, pontos e o mesmo serve para as letras, Ex de letra: "Luis Dias"`
-3. Aguarde até que o processo seja concluído. Os dados serão salvos na planilha 'nome_definido_por_vc.xlsx'.
-4. Verifique os resultados na planilha gerada.
+Configuramos o Chrome para rodar no modo headless (sem interface gráfica), o que é útil para automações em servidores ou processos em segundo plano.
 
-Passos e Explicações:
-Imports de Bibliotecas:
+3.3 Leitura da Planilha Excel
 
-selenium.webdriver: Para interagir com o navegador via Selenium.
-openpyxl: Para manipular arquivos Excel.
-time e datetime: Para manipulação de tempo e datas.
+import openpyxl
+workbook = openpyxl.load_workbook('computadores.xlsx')  # Substitua pelo nome do arquivo Excel
+sheet = workbook.active
+
+O arquivo Excel é carregado, e a planilha ativa é selecionada. A planilha contém dados como nomes ou IDs de produtos que serão utilizados na pesquisa.
+
+3.4 Estrutura do Loop Principal
+
+for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
+    produto = row[0]
+    if produto is None or produto == "":
+        continue
+
+    # Ação de pesquisa no site aqui
+
+O script percorre as linhas da planilha Excel, começando da linha 2 (assumindo que a primeira linha contém cabeçalhos). Para cada item (produto, ID, etc.), ele realiza uma busca no site.
+
+3.5 Interação com o Site
+
+O código para realizar uma busca no site ainda está abstrato, mas o fluxo típico seria:
+
+1. Localizar e interagir com campos de texto: inserir o nome ou ID do produto.
 
 
-### Parametro de consulta
+2. Clicar em botões: para acionar a pesquisa.
 
-        # Inicializar o WebDriver
-        driver = webdriver.Chrome()
-        driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
-        
-        # Carregar a planilha Excel
-        workbook = openpyxl.load_workbook('aiims.xlsx')  # Substitua 'aiims.xlsx' pelo nome do seu arquivo Excel
-        sheet = workbook.active
 
-        try:
-            for col, nomeColunas in enumerate(nomeColunas, start=1):
-                sheet.cell(row=1, column=col).value = nomeColunas
-            # Loop pelas células com dados na planilha
-            for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
-                aiim = row[0]
-                aiim = str(aiim)
+3. Coletar resultados: pegar os dados desejados (preço, descrição, etc.).
 
-### Parametro de formatção
-        
-        cor_clickup = PatternFill(patternType='solid', fgColor='F0D402')
-        cor_outros = PatternFill(patternType='solid', fgColor='FF5B5B')
-        cor_naotem = PatternFill(patternType='solid', fgColor='55A3F9')
 
-        nomeColunas = ["N°", "DRT", "D.AIIM", 
-                "CONTRIBUINTE", "CNPJ", 
-                "TELEFONE", "E-MAIL", 
-                "CNAE", "D.DIA", "SITUAÇÂO"
-                ]
-### Parametro de separação
-        
-        outros = {
-                "LITORAL", "OSASCO", 
-                "CAPITAL I", "CAPITAL II", "CAPITAL III", 
-                "GUARULHOS", 
-                "DTE-II – FISCALIZAÇÃO ESPECIAL", "DTE-I – FISCALIZAÇÃO ESPECIAL",
-                "Compliance MNM", "Compliance M&E"
-                }
-        
-### Parametro de Funcionamento das consultas
-        # Espere até que o campo de AIIM seja clicável e insira o valor
-        aiim_input = wait.until(EC.element_to_be_clickable((By.NAME, 'ctl00$ConteudoPagina$TxtNumAIIM')))
-        aiim_input.clear()  # Limpa o campo antes de inserir o próximo AIIM
-        aiim_input.send_keys(str(aiim))
 
-        # Espere até que o botão de pesquisa seja clicável e clique nele
-        pesquisar = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@title='Clique para pesquisar por numero do aiim (sem o digito verificador)']")))
-        pesquisar.click()
+Exemplo básico de interação com elementos da página:
 
-### Tratamento Alert Google
-        try:
-            alert_wait = WebDriverWait(driver, timeout=0.5)
-            alert = alert_wait.until(EC.alert_is_present())
-            driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
-        except Exception as e:
-            ERRO = "" # String Vazia
-            DRT = ""
-### Selecionando as variaveis definidas
-            try:
-                # Espera até que o elemento com o ID 'ConteudoPagina_lblDRT' seja visível e obtenha o texto
-                elemento_drt = wait.until(EC.visibility_of_element_located((By.ID, 'ConteudoPagina_lblDRT')))
-                DRT = elemento_drt.text
+# Esperar até que o campo de pesquisa seja clicável e inserir o valor
+input_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, 'campo_de_pesquisa')))
+input_element.send_keys(produto)
 
-                # Pesquisar nome
-                elemento_nome = driver.find_element(By.ID, 'ConteudoPagina_lblNomeAutuado')
-                NOME = elemento_nome.text
+# Clicar no botão de pesquisa
+search_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="pesquisar"]')))
+search_button.click()
 
-                # Pesquisar data
-                elemento_data = driver.find_element(By.CSS_SELECTOR, 'td.td1#dataEvento')
-                DATA = elemento_data.text
-### Tratamento de erro caso não tenha informação no site
-            except Exception as e:
-                # Se ocorrer uma exceção durante a busca de informações, registre o erro na planilha
-                ERRO = str(e)
-### Inserindo o resultado
-            finally:
-                # Exibe a data do Dia
-                sheet.cell(row=linha_planilha, column=9).value = DATE
-                # Verificar se há erro e escrever na planilha
-                if ERRO == "":
-                    sheet.cell(row=linha_planilha, column=2).value = DRT
-                    sheet.cell(row=linha_planilha, column=3).value = DATA
-                    sheet.cell(row=linha_planilha, column=4).value = NOME
-                    sheet.cell(row=linha_planilha, column=10).value = "Passar Click Up"
-                    for col in range(1, 11):
-                        sheet.cell(row=linha_planilha, column=col).fill = cor_clickup
-                else:
-                    sheet.cell(row=linha_planilha, column=2).value = "Erro"
-                    sheet.cell(row=linha_planilha, column=10).value = "Não tem ainda"
-                    for col in range(1, 11):
-                        sheet.cell(row=linha_planilha, column=col).fill = cor_naotem
-                    
-                # Verificar se DRT está na lista outros
-                if DRT in outros:
-                    sheet.cell(row=linha_planilha, column=10).value = "Outros"
-                    for col in range(1, 11):
-                        sheet.cell(row=linha_planilha, column=col).fill = cor_outros
-### Finalizando a primeira consulta e retonando para continuação
-                # Incrementar o contador de linha em qualquer caso
-                linha_planilha += 1
+# Coletar dados do resultado
+resultado = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'resultado')))
+dados = resultado.text
 
-                # Volte para a página inicial após cada iteração
-                driver.get('https://www.fazenda.sp.gov.br/epat/extratoprocesso/PesquisarExtrato.aspx')
-            
-### Salvando a resposta
-        finally:
-            # Salvar o arquivo Excel
-            workbook.save('AiimsColetados.xlsx')  # Salvar com um novo nome para evitar a substituição do original
-        
-            # Fechar o navegador após o uso
-            driver.quit()
-### Avisando a finalização do processo
-            # Enviar mensagem de êxito
-            print("Processo concluído com êxito!")
+3.6 Escrevendo os Resultados no Excel
 
-Essa estrutura de documentação fornece uma visão clara de cada parte do código e como elas contribuem para o objetivo final do script. Cada seção é descrita de forma sucinta e focada no que está sendo realizado, facilitando a compreensão e a manutenção futura do código.
+Após coletar os dados, o script os insere na planilha:
 
-### Resposta final
-![image](https://github.com/rafaelgoncalves2201/Automacao_Palin-Martins/assets/156006438/f8c763f1-e134-421d-bc9b-5d6e02c51fa5)
+sheet.cell(row=linha_atual, column=5).value = dados  # Exemplo de inserção de dados coletados
+linha_atual += 1
 
+Cada resultado é inserido na célula correspondente.
+
+3.7 Salvamento do Arquivo Excel
+
+Após o término do loop e a coleta dos dados, o arquivo Excel é salvo:
+
+workbook.save('Computadores_Coletados.xlsx')  # Salvar com um novo nome para evitar sobrescrever o original
+
+4. Tratamento de Exceções
+
+Durante a coleta de dados, podem ocorrer erros como problemas de conexão ou elementos não encontrados na página. O código utiliza blocos try-except para tratar esses casos e evitar a interrupção do script:
+
+try:
+    # Código para interagir com o site
+except Exception as e:
+    print(f"Erro ao coletar dados: {str(e)}")
+
+5. Estrutura da Planilha Excel
+
+A planilha contém os seguintes campos:
+
+Produto/ID: O identificador ou nome do produto que será pesquisado.
+
+Resultados: Informações coletadas do site, como preço, especificações, etc.
+
+
+Exemplo de cabeçalhos no Excel:
+
+nomeColunas = ["ID Produto", "Nome Produto", "Preço", "Especificações", "Descrição"]
+for col, nome in enumerate(nomeColunas, start=1):
+    sheet.cell(row=1, column=col).value = nome
+
+6. Considerações Finais
+
+XPath e Selectors: Como o código foi deixado genérico, não foram especificados os XPaths ou outros seletores precisos para os elementos HTML. Esses devem ser ajustados conforme a estrutura do site de onde os dados serão coletados.
+
+Temporização: O tempo de espera (time.sleep) e os waits explícitos (WebDriverWait) foram configurados para garantir que o script espere a página carregar antes de interagir com ela.
+
+
+7. Possíveis Melhorias
+
+Adição de logs: Para melhor rastreamento de erros e progresso do script.
+
+Gerenciamento de Erros: Melhorar o tratamento de exceções para lidar com diferentes tipos de falhas (ex.: página indisponível, produto não encontrado).
+
+Paralelização: Para coleta em grande escala, implementar processamento paralelo ou assíncrono para aumentar a velocidade.
